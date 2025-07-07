@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* index.css */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+.map-page {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 300px;
+  height: 100%;
+  background: #f8f9fa;
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.map-container {
+  height: 100%;
+  margin-left: 300px;
+}
+
+/* Tailwind-styled form elements inside sidebar */
+.search-container {
+  margin-bottom: 15px;
+}
+
+.search-container input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.search-container select{
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.search-container button {
+  width: 100%;
+  padding: 8px;
+  background: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.search-container button:hover {
+  background: #0056b3;
+}
+
+/* Error message styling */
+.error {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* Important fix */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
