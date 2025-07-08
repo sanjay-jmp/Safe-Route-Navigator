@@ -11,7 +11,7 @@ CORS(app)
 
 # ────────────────────────────────────────
 # ✅ Download .graphml from GitHub if not exists
-GRAPHML_URL = "https://github.com/sanjay-jmp/graphml-storage/raw/main/los_angeles_precomputed_severity.graphml"
+GRAPHML_URL = "https://raw.githubusercontent.com/sanjay-jmp/graphml-storage/main/los_angeles_precomputed_severity.graphml"
 GRAPHML_PATH = "los_angeles.graphml"
 
 if not os.path.exists(GRAPHML_PATH):
