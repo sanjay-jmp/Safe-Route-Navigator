@@ -9,23 +9,30 @@ import requests
 app = Flask(__name__)
 CORS(app)
 
-# ────────────────────────────────────────
-# ✅ Download .graphml from GitHub if not exists
-GRAPHML_URL = "https://raw.githubusercontent.com/sanjay-jmp/graphml-storage/main/los_angeles_precomputed_severity.graphml"
+GRAPHML_FILE_ID = "1fx-Ksj6Xo9HTpJW4ubeSr8hMx-5xoshH"
+GRAPHML_URL = f"https://drive.google.com/uc?export=download&id={GRAPHML_FILE_ID}"
 GRAPHML_PATH = "los_angeles.graphml"
 
 if not os.path.exists(GRAPHML_PATH):
-    print("📥 Downloading .graphml file from GitHub...")
+    print("📥 Downloading .graphml file from Google Drive...")
     response = requests.get(GRAPHML_URL)
+    response.raise_for_status()  # stops if response code != 200
+
     with open(GRAPHML_PATH, "wb") as f:
         f.write(response.content)
-    print("✅ Download complete!")
 
-# ────────────────────────────────────────
-# ✅ Load graph
+    # Sanity check: is this HTML or actual GraphML?
+    with open(GRAPHML_PATH, "rb") as f:
+        head = f.read(300)
+        if b"<html" in head.lower():
+            raise Exception("❌ Downloaded file looks like HTML — Google Drive may have blocked the download.")
+
+    print(f"✅ Download complete! File size: {os.path.getsize(GRAPHML_PATH)} bytes")
+
+# Load graph
 print("🔄 Loading graph from .graphml...")
 G = ox.load_graphml(GRAPHML_PATH)
-print("✅ Graph loaded!")
+
 
 # ────────────────────────────────────────
 # ✅ Get available time bins from graph attributes
