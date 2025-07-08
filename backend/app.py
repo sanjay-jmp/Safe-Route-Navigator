@@ -9,29 +9,29 @@ import requests
 app = Flask(__name__)
 CORS(app)
 
-GRAPHML_FILE_ID = "1fx-Ksj6Xo9HTpJW4ubeSr8hMx-5xoshH"
-GRAPHML_URL = f"https://drive.google.com/uc?export=download&id={GRAPHML_FILE_ID}"
+GRAPHML_URL = "https://www.dropbox.com/scl/fi/6req40ef4vtwxq2p3v0hq/los_angeles_precomputed_severity.graphml?rlkey=cfnvpilssp2d11217s7n3zbil&st=apubg9se&dl=1"
 GRAPHML_PATH = "los_angeles.graphml"
 
 if not os.path.exists(GRAPHML_PATH):
-    print("📥 Downloading .graphml file from Google Drive...")
+    print("📥 Downloading .graphml file from Dropbox...")
     response = requests.get(GRAPHML_URL)
-    response.raise_for_status()  # stops if response code != 200
+    response.raise_for_status()
 
     with open(GRAPHML_PATH, "wb") as f:
         f.write(response.content)
 
-    # Sanity check: is this HTML or actual GraphML?
+    # Check for HTML fallback page (should not exist)
     with open(GRAPHML_PATH, "rb") as f:
         head = f.read(300)
         if b"<html" in head.lower():
-            raise Exception("❌ Downloaded file looks like HTML — Google Drive may have blocked the download.")
+            raise Exception("❌ Dropbox returned HTML — check if file is public or if the link is correct.")
 
     print(f"✅ Download complete! File size: {os.path.getsize(GRAPHML_PATH)} bytes")
 
-# Load graph
+# Load the graph
 print("🔄 Loading graph from .graphml...")
 G = ox.load_graphml(GRAPHML_PATH)
+
 
 
 # ────────────────────────────────────────
