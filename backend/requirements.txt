@@ -3,7 +3,5 @@ Flask-Cors==6.0.1
 networkx==3.5
 osmnx==2.0.4
 shapely==2.1.1
-numpy==2.2.6
-pandas==2.2.3
-geopandas==1.1.0
-matplotlib==3.10.3
+neo4j==5.21.0 # Or the specific version you prefer/are using
+gunicorn
