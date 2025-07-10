@@ -12,14 +12,11 @@ app = Flask(__name__)
 CORS(app)  # ✅ Enables CORS for frontend access
 
 # --- Neo4j AuraDB Connection Details ---
-# It's highly recommended to use environment variables for credentials in production
-# NEO4J_URI = os.getenv("NEO4J_URI", "neo4j+s://c19f8aa3.databases.neo4j.io")
-# NEO4J_USERNAME = os.getenv("NEO4J_USERNAME", "neo4j")
-# NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "okH3VVp0qJRCkmdQ70FhBqyNxVJi3Mx3bk4btNocnSw")
+#It's highly recommended to use environment variables for credentials in production
+NEO4J_URI = os.getenv("NEO4J_URI", "neo4j+s://c19f8aa3.databases.neo4j.io")
+NEO4J_USERNAME = os.getenv("NEO4J_USERNAME", "neo4j")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "okH3VVp0qJRCkmdQ70FhBqyNxVJi3Mx3bk4btNocnSw")
 
-NEO4J_URI = "neo4j+s://c19f8aa3.databases.neo4j.io"
-NEO4J_USERNAME = "neo4j"
-NEO4J_PASSWORD = "okH3VVp0qJRCkmdQ70FhBqyNxVJi3Mx3bk4btNocnSw" # Your actual password
 
 # --- Global Neo4j Driver (initialized once on app startup) ---
 driver = None
