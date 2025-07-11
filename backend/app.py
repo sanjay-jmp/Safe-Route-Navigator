@@ -9,7 +9,7 @@ import os
 import functools # Import functools for lru_cache
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": 'https://lively-youtiao-bace0b.netlify.app/'}}) 
+CORS(app, resources={r"/*": {"origins": 'https://lively-youtiao-bace0b.netlify.app'}}) 
 
 # --- Neo4j AuraDB Connection Details ---
 #It's highly recommended to use environment variables for credentials in production
@@ -311,7 +311,8 @@ def get_safe_route():
             "info": route_info
         })
     else:
-        return jsonify(route_info), 500 # Use 500 for internal errors or 404/400 for specific ones
+        app.logger.error(f"Error in find_safe_route: {str(e)}")
+        return jsonify(route_info), 500 , str(e) # Use 500 for internal errors or 404/400 for specific ones
 
 if __name__ == '__main__':
     app.run(debug=True)
