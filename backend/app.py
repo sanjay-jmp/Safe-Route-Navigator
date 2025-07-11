@@ -311,8 +311,14 @@ def get_safe_route():
             "info": route_info
         })
     else:
-        app.logger.error(f"Error in find_safe_route: {str(e)}")
-        return jsonify(route_info), 500 , str(e) # Use 500 for internal errors or 404/400 for specific ones
+        error_message = str(e)
+        app.logger.error(f"Error in find_safe_route: {error_message}")
+        return jsonify({
+            "status": "error",
+            "message": "An internal server error occurred while fetching the route.",
+            "details": error_message # Include the actual error message here
+            # You might also include route_info here if it contains partial valid data on error
+        }), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
