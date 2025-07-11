@@ -313,17 +313,16 @@ def get_safe_route():
     else:
         return jsonify(route_info), 500 # Use 500 for internal errors or 404/400 for specific ones
 
-if __name__ == '__main__':
-    app.run(debug=True)
+app.run(debug=True)
 
-# --- App Teardown (to gracefully close Neo4j driver) ---
-@app.teardown_appcontext
-def close_neo4j_driver(exception):
-    global driver
-    if driver:
-        driver.close()
-        print("Neo4j driver closed during app teardown.")
-        driver = None # Clear the driver for clean state
-    # Clear the lru_cache for _get_cached_subgraph on teardown if needed for testing scenarios
-    _get_cached_subgraph.cache_clear()
-    print("Subgraph cache cleared.")
+# # --- App Teardown (to gracefully close Neo4j driver) ---
+# @app.teardown_appcontext
+# def close_neo4j_driver(exception):
+#     global driver
+#     if driver:
+#         driver.close()
+#         print("Neo4j driver closed during app teardown.")
+#         driver = None # Clear the driver for clean state
+#     # Clear the lru_cache for _get_cached_subgraph on teardown if needed for testing scenarios
+#     _get_cached_subgraph.cache_clear()
+#     print("Subgraph cache cleared.")
