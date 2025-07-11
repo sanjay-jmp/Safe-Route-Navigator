@@ -315,14 +315,14 @@ def get_safe_route():
 
 app.run(debug=True)
 
-# --- App Teardown (to gracefully close Neo4j driver) ---
-@app.teardown_appcontext
-def close_neo4j_driver(exception):
-    global driver
-    if driver:
-        driver.close()
-        print("Neo4j driver closed during app teardown.")
-        driver = None # Clear the driver for clean state
-    # Clear the lru_cache for _get_cached_subgraph on teardown if needed for testing scenarios
-    _get_cached_subgraph.cache_clear()
-    print("Subgraph cache cleared.")
+# # --- App Teardown (to gracefully close Neo4j driver) ---
+# @app.teardown_appcontext
+# def close_neo4j_driver(exception):
+#     global driver
+#     if driver:
+#         driver.close()
+#         print("Neo4j driver closed during app teardown.")
+#         driver = None # Clear the driver for clean state
+#     # Clear the lru_cache for _get_cached_subgraph on teardown if needed for testing scenarios
+#     _get_cached_subgraph.cache_clear()
+#     print("Subgraph cache cleared.")
