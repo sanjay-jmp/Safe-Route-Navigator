@@ -313,7 +313,8 @@ def get_safe_route():
     else:
         return jsonify(route_info), 500 # Use 500 for internal errors or 404/400 for specific ones
 
-app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
 
 # # --- App Teardown (to gracefully close Neo4j driver) ---
 # @app.teardown_appcontext
