@@ -9,7 +9,7 @@ import os
 import functools # Import functools for lru_cache
 
 app = Flask(__name__)
-CORS(app)  # ✅ Enables CORS for frontend access
+CORS(app, resources={r"/*": {"origins": 'https://lively-youtiao-bace0b.netlify.app/'}})
 
 # --- Neo4j AuraDB Connection Details ---
 #It's highly recommended to use environment variables for credentials in production
