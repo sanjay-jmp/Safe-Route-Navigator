@@ -3,7 +3,9 @@ import axios from "axios";
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 
-export default function sidebar({sourceCoords, destCoords,setSourceCoords, setDestCoords, fetchSafeRoute, isSideBar, setIsSideBar, routeType, setRouteType, routeInfo}){
+
+
+export default function sidebar({sourceCoords, destCoords,setSourceCoords, setDestCoords, fetchSafeRoute, isSideBar, setIsSideBar, routeType, setRouteType, routeInfo,loading}){
     const [source, setSource] = useState("");
     const [destination, setDestination] = useState("");
     const sidebarDiv = useRef(null)
@@ -98,7 +100,7 @@ export default function sidebar({sourceCoords, destCoords,setSourceCoords, setDe
             </select>
 
             <button className='rounded-3xl' type="submit" disabled={!sourceCoords || !destCoords}>
-                Find Route
+                {loading ? "Loading..." : "Find Safe Route"}
             </button>
             </form>
             {routeInfo && Object.keys(routeInfo).length > 0 && (

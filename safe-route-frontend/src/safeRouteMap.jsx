@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import SplashScreen from "./components/splashScreen";
 import Sidebar from "./components/sideBar";
 import Map from "./components/map";
+import { FaSpinner } from "react-icons/fa";
 
 function haversineDistance(coord1, coord2) {
   const toRad = (x) => (x * Math.PI) / 180;
@@ -53,6 +54,8 @@ const SafeRouteMap = () => {
   const [route, setRoute] = useState([]);
   const [routeInfo, setRouteInfo] = useState({})
   const [isSideBar, setIsSideBar] = useState(true);
+  const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 2500);
@@ -73,7 +76,8 @@ const SafeRouteMap = () => {
   if (!sourceCoords || !destCoords || !routeType) return;
 
   try {
-    const response = await axios.get("http://127.0.0.1:5000/find_safe_route", {
+    setLoading(true);
+    const response = await axios.get("https://safe-route-navigator.onrender.com", {
       params: {
         source: `${sourceCoords[0]},${sourceCoords[1]}`,
         destination: `${destCoords[0]},${destCoords[1]}`,
@@ -113,6 +117,9 @@ const SafeRouteMap = () => {
     console.error("Error fetching route:", error);
     alert("An error occurred while fetching the route.");
   }
+  finally {
+    setLoading(false); // ✅ Stop loading
+  }
 };
 
 
@@ -120,6 +127,15 @@ const SafeRouteMap = () => {
 
   return (
     <div className="flex h-screen w-screen map-page">
+      {loading && (
+        <div className="absolute top-0 left-0 w-full h-full bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300 ease-in-out">
+          <div className="flex flex-col items-center text-white">
+            <FaSpinner className="animate-spin text-4xl mb-3" />
+            <p className="text-lg font-semibold">Finding the safest route...</p>
+          </div>
+        </div>
+      )}
+
       <Sidebar 
         sourceCoords={sourceCoords}
         destCoords={destCoords}
@@ -131,7 +147,9 @@ const SafeRouteMap = () => {
         routeType={routeType}
         setRouteType={setRouteType}
         routeInfo={routeInfo}
+        loading={loading}
         />
+      
 
       <Map 
         sourceCoords={sourceCoords}
