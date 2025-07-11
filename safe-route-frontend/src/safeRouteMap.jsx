@@ -77,7 +77,7 @@ const SafeRouteMap = () => {
 
   try {
     setLoading(true);
-    const response = await axios.get("https://safe-route-navigator.onrender.com/find-safe-route", {
+    const response = await axios.get("https://safe-route-navigator.onrender.com/find_safe_route", {
       params: {
         source: `${sourceCoords[0]},${sourceCoords[1]}`,
         destination: `${destCoords[0]},${destCoords[1]}`,
