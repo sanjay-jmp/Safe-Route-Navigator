@@ -256,6 +256,16 @@ def _find_route_from_neo4j_data(source_lat, source_lon, dest_lat, dest_lon, time
         traceback.print_exc()
         return None, None, {"error": f"An internal error occurred during path computation: {e}"}
 
+@app.route('/')
+def home():
+    """
+    Simple home endpoint to check if the backend is running.
+    """
+    return jsonify({
+        "status": "success",
+        "message": "Safe Route Navigator Backend is running!",
+        "version": "1.0.0" # Optional: add a version
+    }), 200 # HTTP 200 OK status code
 
 @app.route('/find_safe_route', methods=['GET'])
 def get_safe_route():
