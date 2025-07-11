@@ -5,3 +5,4 @@ osmnx==2.0.4
 shapely==2.1.1
 neo4j==5.21.0 # Or the specific version you prefer/are using
 gunicorn
+scikit-learn>=1.0.0
