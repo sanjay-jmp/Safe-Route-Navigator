@@ -269,57 +269,162 @@ def home():
 
 @app.route('/find_safe_route', methods=['GET'])
 def get_safe_route():
-    source = request.args.get('source')  # "lat,lon"
-    destination = request.args.get('destination')  # "lat,lon"
-    user_time = request.args.get('time')  # "HH:MM:SS"
-    route_type = request.args.get('route_type', 'safest')
-
-    if not source or not destination or not user_time:
-        return jsonify({"error": "Missing required parameters (source, destination, time)."}), 400
+    # Initialize variables
+    source = destination = user_time = route_type = None
+    src_lat = src_lon = dest_lat = dest_lon = 0.0
+    local_G = path_osmid_list = route_info = None
 
     try:
-        src_lat, src_lon = map(float, source.split(','))
-        dest_lat, dest_lon = map(float, destination.split(','))
-    except ValueError:
-        return jsonify({"error": "Invalid coordinates format. Use 'lat,lon'."}), 400
+        # 1. Input Validation
+        source = request.args.get('source')  # "lat,lon"
+        destination = request.args.get('destination')  # "lat,lon"
+        user_time = request.args.get('time')  # "HH:MM:SS"
+        route_type = request.args.get('route_type', 'safest')
 
-    time_bin = get_time_bin(user_time)
+        if not all([source, destination, user_time]):
+            app.logger.warning("Missing required parameters")
+            return jsonify({
+                "error": "Missing required parameters",
+                "required": ["source", "destination", "time"],
+                "received": {
+                    "source": bool(source),
+                    "destination": bool(destination),
+                    "time": bool(user_time)
+                }
+            }), 400
 
-    local_G, path_osmid_list, route_info = _find_route_from_neo4j_data(
-        src_lat, src_lon, dest_lat, dest_lon, time_bin, route_type, buffer_degrees=0.06
-    )
+        # 2. Coordinate Parsing
+        try:
+            src_lat, src_lon = map(float, source.split(','))
+            dest_lat, dest_lon = map(float, destination.split(','))
+        except ValueError as ve:
+            app.logger.error(f"Coordinate parsing error: {str(ve)}")
+            return jsonify({
+                "error": "Invalid coordinates format",
+                "expected": "latitude,longitude (e.g., '34.052235,-118.243683')",
+                "received": {
+                    "source": source,
+                    "destination": destination
+                }
+            }), 400
 
-    if local_G and path_osmid_list:
-        route_coords = []
-        for i in range(len(path_osmid_list) - 1):
-            u_osmid = path_osmid_list[i]
-            v_osmid = path_osmid_list[i+1]
-            
-            edge_data_dict = local_G.get_edge_data(u_osmid, v_osmid)
-            best_edge_for_geometry = next(iter(edge_data_dict.values()), None)
+        # 3. Time Validation
+        try:
+            time_bin = get_time_bin(user_time)
+            if time_bin not in available_time_bins:
+                raise ValueError("Invalid time bin")
+        except Exception as te:
+            app.logger.error(f"Time validation error: {str(te)}")
+            return jsonify({
+                "error": "Invalid time format",
+                "expected": "HH:MM:SS (24-hour format)",
+                "received": user_time,
+                "available_time_bins": available_time_bins
+            }), 400
 
-            if best_edge_for_geometry and 'geometry' in best_edge_for_geometry:
-                coords = list(best_edge_for_geometry['geometry'].coords)
-                route_coords.extend([(lat, lon) for lon, lat in coords])
-            else:
-                if not route_coords or route_coords[-1] != (local_G.nodes[u_osmid]['y'], local_G.nodes[u_osmid]['x']):
-                    route_coords.append((local_G.nodes[u_osmid]['y'], local_G.nodes[u_osmid]['x']))
-                route_coords.append((local_G.nodes[v_osmid]['y'], local_G.nodes[v_osmid]['x']))
+        # 4. Route Calculation with Timeout
+        try:
+            import signal
+            from contextlib import contextmanager
 
-        return jsonify({
-            "route": route_coords,
-            "info": route_info
-        })
-    else:
+            @contextmanager
+            def timeout(time):
+                def raise_timeout(signum, frame):
+                    raise TimeoutError(f"Operation timed out after {time} seconds")
+                
+                signal.signal(signal.SIGALRM, raise_timeout)
+                signal.alarm(time)
+                try:
+                    yield
+                finally:
+                    signal.alarm(0)
+
+            # Set 20-second timeout for route calculation
+            with timeout(20):
+                local_G, path_osmid_list, route_info = _find_route_from_neo4j_data(
+                    src_lat, src_lon, dest_lat, dest_lon, 
+                    time_bin, route_type, buffer_degrees=0.04  # Reduced buffer for performance
+                )
+
+        except TimeoutError as toe:
+            app.logger.error(f"Route calculation timeout: {str(toe)}")
+            return jsonify({
+                "error": "Route calculation timed out",
+                "message": "The system couldn't calculate a route in time. Try a shorter distance or different parameters.",
+                "suggestion": "Reduce the distance between points or try again later"
+            }), 504
+
+        # 5. Route Processing
+        if local_G and path_osmid_list:
+            route_coords = []
+            for i in range(len(path_osmid_list) - 1):
+                u_osmid = path_osmid_list[i]
+                v_osmid = path_osmid_list[i+1]
+                
+                edge_data_dict = local_G.get_edge_data(u_osmid, v_osmid)
+                best_edge_for_geometry = next(iter(edge_data_dict.values()), None)
+
+                if best_edge_for_geometry and 'geometry' in best_edge_for_geometry:
+                    try:
+                        coords = list(best_edge_for_geometry['geometry'].coords)
+                        route_coords.extend([(lat, lon) for lon, lat in coords])
+                    except Exception as ge:
+                        app.logger.warning(f"Geometry processing error: {str(ge)}")
+                        # Fallback to simple node-to-node connection
+                        route_coords.append((local_G.nodes[u_osmid]['y'], local_G.nodes[u_osmid]['x']))
+                        route_coords.append((local_G.nodes[v_osmid]['y'], local_G.nodes[v_osmid]['x']))
+                else:
+                    if not route_coords or route_coords[-1] != (local_G.nodes[u_osmid]['y'], local_G.nodes[u_osmid]['x']):
+                        route_coords.append((local_G.nodes[u_osmid]['y'], local_G.nodes[u_osmid]['x']))
+                    route_coords.append((local_G.nodes[v_osmid]['y'], local_G.nodes[v_osmid]['x']))
+
+            return jsonify({
+                "status": "success",
+                "route": route_coords,
+                "info": route_info,
+                "metadata": {
+                    "nodes_in_path": len(path_osmid_list),
+                    "coordinates_returned": len(route_coords),
+                    "calculation_time": time_bin
+                }
+            })
+
+        else:
+            error_msg = route_info.get("error", "Unknown error occurred during route calculation")
+            app.logger.error(f"Route calculation failed: {error_msg}")
+            return jsonify({
+                "status": "error",
+                "error": error_msg,
+                "parameters_used": {
+                    "source": f"{src_lat},{src_lon}",
+                    "destination": f"{dest_lat},{dest_lon}",
+                    "time": user_time,
+                    "time_bin": time_bin,
+                    "route_type": route_type
+                },
+                "suggestions": [
+                    "Try adjusting your start/end points slightly",
+                    "Check if your coordinates are within the service area",
+                    "Try again with a different time"
+                ]
+            }), 400 if "No route found" in error_msg else 500
+
+    except Exception as e:
         error_message = str(e)
-        app.logger.error(f"Error in find_safe_route: {error_message}")
+        app.logger.error(f"Unexpected error in find_safe_route: {error_message}", exc_info=True)
         return jsonify({
             "status": "error",
-            "message": "An internal server error occurred while fetching the route.",
-            "details": error_message # Include the actual error message here
-            # You might also include route_info here if it contains partial valid data on error
+            "message": "An unexpected error occurred",
+            "error": error_message,
+            "parameters_received": {
+                "source": source,
+                "destination": destination,
+                "time": user_time,
+                "route_type": route_type
+            },
+            "support": "Please contact support with this error message"
         }), 500
-
+    
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))  # Render uses $PORT environment variable
     app.run(host='0.0.0.0', port=port, debug=True)  # debug=False in production
