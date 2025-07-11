@@ -59,7 +59,7 @@ def severity_level(avg_severity):
         return "High"
 
 # --- Cached Function to Fetch and Build Subgraph ---
-@functools.lru_cache(maxsize=128) # Cache up to 128 unique subgraphs
+@functools.lru_cache(maxsize=1) # Cache up to 1 unique subgraphs
 def _get_cached_subgraph(min_lat, max_lat, min_lon, max_lon, time_bin):
     """
     Fetches graph data from Neo4j within a bounding box and constructs a local NetworkX graph.
