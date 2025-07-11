@@ -147,7 +147,7 @@ def _get_cached_subgraph(min_lat, max_lat, min_lon, max_lon, time_bin):
             return None # Return None on error, cache won't store this result
 
 # --- Core Logic: Find Route by utilizing cached subgraph ---
-def _find_route_from_neo4j_data(source_lat, source_lon, dest_lat, dest_lon, time_bin, route_type, buffer_degrees=0.12):
+def _find_route_from_neo4j_data(source_lat, source_lon, dest_lat, dest_lon, time_bin, route_type, buffer_degrees=0.8):
     """
     Finds the safest/fastest route using NetworkX's A* algorithm on a (potentially cached) subgraph.
     """
@@ -343,7 +343,7 @@ def get_safe_route():
             with timeout(20):
                 local_G, path_osmid_list, route_info = _find_route_from_neo4j_data(
                     src_lat, src_lon, dest_lat, dest_lon, 
-                    time_bin, route_type, buffer_degrees=0.12  # Reduced buffer for performance
+                    time_bin, route_type, buffer_degrees=0.8  # Reduced buffer for performance
                 )
 
         except TimeoutError as toe:
