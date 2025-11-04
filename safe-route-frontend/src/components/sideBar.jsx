@@ -135,11 +135,11 @@ export default function sidebar({sourceCoords, destCoords,setSourceCoords, setDe
                     <h3><i className="fas fa-info-circle"></i> Route Information</h3>
                     <div className="info-item">
                         <span className="info-label"><i className="fas fa-route"></i> Distance</span>
-                        <span className="info-value">{routeInfo.distance}</span>
+                        <span className="info-value">{routeInfo.distance} Km</span>
                     </div>
                     <div className="info-item">
                         <span className="info-label"><i className="fas fa-clock"></i> Duration</span>
-                        <span className="info-value">{routeInfo.duration}</span>
+                        <span className="info-value">{routeInfo.duration} H</span>
                     </div>
                     <div className="info-item">
                         <span className="info-label"><i className="fas fa-shield-alt"></i> Safety Level</span>
