@@ -77,7 +77,7 @@ const SafeRouteMap = () => {
 
   try {
     setLoading(true);
-    const response = await axios.get("https://safe-route-navigator.onrender.com/find_safe_route", {
+    const response = await axios.get("http://127.0.0.1:5000/find_safe_route", {
       params: {
         source: `${sourceCoords[0]},${sourceCoords[1]}`,
         destination: `${destCoords[0]},${destCoords[1]}`,
@@ -88,8 +88,8 @@ const SafeRouteMap = () => {
 
     const backendRoute = response.data.route;
     const routeInfo = response.data.info;
+    console.log(routeInfo);
 
-    // Validate coordinates
     if (!backendRoute || backendRoute.length < 2) {
       alert("No valid route received from backend.");
       return;
@@ -100,8 +100,9 @@ const SafeRouteMap = () => {
 
     const startDist = haversineDistance(sourceCoords, startBackend);
     const endDist = haversineDistance(destCoords, endBackend);
-
-    const threshold = 200; // meters
+    console.log(startDist)
+    console.log(endDist)
+    const threshold = 2400; // meters
 
     if (startDist > threshold || endDist > threshold) {
       alert(
@@ -110,15 +111,13 @@ const SafeRouteMap = () => {
       return;
     }
 
-    // All good → set the route and info
     setRoute(backendRoute);
     setRouteInfo(routeInfo);
   } catch (error) {
     console.error("Error fetching route:", error);
     alert("An error occurred while fetching the route.");
-  }
-  finally {
-    setLoading(false); // ✅ Stop loading
+  } finally {
+    setLoading(false);
   }
 };
 
