@@ -1,0 +1,31 @@
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# ---- Environment ----
+.env
+.env.*
+
+# ---- Virtual environments ----
+venv/
+env/
+.venv/
+ENV/
+
+# ---- Logs ----
+*.log
+
+# ---- IDE / Editor ----
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# ---- Node / React (frontend) ----
+frontend/node_modules/
+frontend/build/
+frontend/.env

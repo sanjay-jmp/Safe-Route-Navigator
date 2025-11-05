@@ -5,14 +5,21 @@ from shapely.geometry import LineString
 from neo4j import GraphDatabase, basic_auth
 import os
 import functools
+from dotenv import load_dotenv
+
+# --- Load environment variables ---
+load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "https://lively-youtiao-bace0b.netlify.app"]}})
+CORS(app, resources={r"/*": {"origins": [
+    "http://localhost:5173",
+    "https://lively-youtiao-bace0b.netlify.app"
+]}})
 
 # --- Neo4j AuraDB Connection ---
-NEO4J_URI = os.getenv("NEO4J_URI", "neo4j+s://c3dfe180.databases.neo4j.io")
-NEO4J_USERNAME = os.getenv("NEO4J_USERNAME", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "Vx_v-ZKi4ixRhqG1qKyae6IZhrN-D_TE5aeCvifARKo")
+NEO4J_URI = os.getenv("NEO4J_URI")
+NEO4J_USERNAME = os.getenv("NEO4J_USERNAME")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 
 driver = None
 try:
@@ -87,7 +94,7 @@ def build_local_graph(nodes, time_bin):
             geometry_obj = None
             if geometry_coords_flat and len(geometry_coords_flat) % 2 == 0:
                 geometry_obj = LineString([(geometry_coords_flat[i], geometry_coords_flat[i+1])
-                                           for i in range(0, len(geometry_coords_flat), 2)])
+                                          for i in range(0, len(geometry_coords_flat), 2)])
 
             G.add_edge(u, v, length=length, **{severity_attr: severity}, geometry=geometry_obj)
 
@@ -131,10 +138,10 @@ def find_safest_or_fastest_path(G, src_lat, src_lon, dest_lat, dest_lon, route_t
         duration_h = round(total_length_km / 36, 2)  # 36 km/h avg speed
 
         info = {
-            "distance": total_length_km,            # kilometers
-            "duration": duration_h,                 # hours
+            "distance": total_length_km,             # kilometers
+            "duration": duration_h,                  # hours
             "safety_level": severity_level(avg_severity),
-            "safety_score": round(avg_severity,2)
+            "safety_score": round(avg_severity, 2)
         }
 
         return path, info
@@ -182,7 +189,7 @@ def get_safe_route():
                                   min_lon=min_lon, max_lon=max_lon).data()
             print(f"Nodes fetched: {len(result)}")
             if not result:
-                return jsonify({"status":"error","error":"No nodes found in the area"}), 400
+                return jsonify({"status": "error", "error": "No nodes found in the area"}), 400
 
         # Build graph and find path
         G = build_local_graph(result, time_bin)
@@ -191,15 +198,15 @@ def get_safe_route():
         if path:
             coords = [(G.nodes[n]['y'], G.nodes[n]['x']) for n in path]
             print("🛣️ Route Info:", info)
-            return jsonify({"status":"success","route": coords, "info": info})
+            return jsonify({"status": "success", "route": coords, "info": info})
         else:
             print("Error info:", info)
-            return jsonify({"status":"error","error": info.get("error", "Unknown error")}), 400
+            return jsonify({"status": "error", "error": info.get("error", "Unknown error")}), 400
 
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return jsonify({"status":"error","message": str(e)}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
